@@ -19,14 +19,15 @@
 package edu.pitt.dbmi.experiment.run;
 
 import edu.cmu.tetrad.algcomparison.independence.ProbabilisticTest;
+import edu.cmu.tetrad.data.DataModel;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Rfci;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.data.reader.Delimiter;
-import edu.pitt.dbmi.experiment.run.util.DataSampling;
 import edu.pitt.dbmi.experiment.run.util.Graphs;
 import edu.pitt.dbmi.experiment.run.util.ResourceLoader;
 import java.io.IOException;
@@ -38,34 +39,29 @@ import java.util.List;
 
 /**
  *
- * Feb 27, 2023 3:14:43 PM
+ * Mar 4, 2023 9:41:02 AM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class RfciBootstrappingApp {
+public class PagSamplingRfciApp {
 
     private static void run(Path dataFile, Path dirOut) throws IOException {
-        DataSet dataSet = (DataSet) ResourceLoader.readInDataModel(dataFile, Delimiter.TAB);
-
-        // bootstrap data sample
-        long seed = 1673588774198L;
-        int numberResampling = 99;
-        boolean includeOriginalDataset = true;
-        List<DataSet> dataSets = DataSampling.sampleWithReplacement(dataSet, seed, numberResampling, includeOriginalDataset);
+        DataModel dataModel = ResourceLoader.readInDataModel(dataFile, Delimiter.TAB);
 
         // algorithm parameters
         Parameters parameters = new Parameters();
+        setPagSamplingRficParameters(parameters);
         setRfciParameters(parameters);
         setProbabilisticTestParameters(parameters);
 
-        List<Graph> graphs = runSearches(dataSets, parameters);
+        List<Graph> graphs = runSearches(dataModel, parameters);
         Graph graph = Graphs.createGraphWithHighestProbabilityEdges(graphs);
 
         // write out details
         try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "run_details.txt").toFile())) {
             writer.println("Algorithm");
             writer.println("================================================================================");
-            writer.println("Algorithm: RFCI");
+            writer.println("Algorithm: PAG Sampling RFCI");
             writer.println("Test of Independence: Probabilistic Test");
             writer.println();
 
@@ -85,18 +81,10 @@ public class RfciBootstrappingApp {
             });
             writer.println();
 
-            writer.println("Bootstrapping");
-            writer.println("----------------------------------------");
-            writer.printf("Seed: %d%n", seed);
-            writer.printf("Number of Sampling: %d%n", numberResampling);
-            writer.printf("Include Original Dataset: %s%n", includeOriginalDataset ? "Yes" : "No");
-            writer.println();
-
             writer.println("Dataset");
             writer.println("----------------------------------------");
-            writer.printf("Variables: %d%n", dataSet.getNumColumns());
-            writer.printf("Cases: %d%n", dataSet.getNumRows());
-            writer.printf("Data Samples: %d%n", dataSets.size());
+            writer.printf("Variables: %d%n", ((DataSet) dataModel).getNumColumns());
+            writer.printf("Cases: %d%n", ((DataSet) dataModel).getNumRows());
             writer.println();
 
             writer.println("Graph Details");
@@ -115,18 +103,22 @@ public class RfciBootstrappingApp {
         }
     }
 
-    private static List<Graph> runSearches(List<DataSet> dataSets, Parameters parameters) {
+    private static List<Graph> runSearches(DataModel dataModel, Parameters parameters) {
         List<Graph> graphs = new LinkedList<>();
 
-        for (DataSet dataSet : dataSets) {
-            graphs.add(runSearch(dataSet, parameters));
+        int numRandomizedSearchModels = parameters.getInt(Params.NUM_RANDOMIZED_SEARCH_MODELS);
+        while (graphs.size() < numRandomizedSearchModels) {
+            Graph graph = runSearch(dataModel, parameters);
+            if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                graphs.add(graph);
+            }
         }
 
         return graphs;
     }
 
-    private static Graph runSearch(DataSet dataSet, Parameters parameters) {
-        Rfci rfci = new Rfci((new ProbabilisticTest()).getTest(dataSet, parameters));
+    private static Graph runSearch(DataModel dataModel, Parameters parameters) {
+        Rfci rfci = new Rfci((new ProbabilisticTest()).getTest(dataModel, parameters));
         rfci.setDepth(parameters.getInt(Params.DEPTH));
         rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
         rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
@@ -137,21 +129,27 @@ public class RfciBootstrappingApp {
     private static void setRfciParameters(Parameters parameters) {
         int maxPathLength = -1;
         int depth = -1;
-        boolean verbose = false;
 
         parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
         parameters.set(Params.DEPTH, depth);
-        parameters.set(Params.VERBOSE, verbose);
     }
 
     private static void setProbabilisticTestParameters(Parameters parameters) {
         double cutoffIndTest = 0.5;
-        double priorEquivalentSampleSize = 10;
-        boolean noRandomlyDeterminedIndependence = true;
+        double priorEquivalentSampleSize = 100;
+        boolean noRandomlyDeterminedIndependence = false;
 
         parameters.set(Params.CUTOFF_IND_TEST, cutoffIndTest);
         parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, priorEquivalentSampleSize);
         parameters.set(Params.NO_RANDOMLY_DETERMINED_INDEPENDENCE, noRandomlyDeterminedIndependence);
+    }
+
+    private static void setPagSamplingRficParameters(Parameters parameters) {
+        int numRandomizedSearchModels = 100;
+        boolean verbose = false;
+
+        parameters.set(Params.NUM_RANDOMIZED_SEARCH_MODELS, numRandomizedSearchModels);
+        parameters.set(Params.VERBOSE, verbose);
     }
 
     /**
@@ -159,7 +157,7 @@ public class RfciBootstrappingApp {
      */
     public static void main(String[] args) {
         System.out.println("================================================================================");
-        System.out.println("Rfci Bootstrapping");
+        System.out.println("PAG Sampling RFCI");
         System.out.println("================================================================================");
         try {
             run(Paths.get(args[0]), Paths.get(args[1]));

@@ -37,9 +37,14 @@ public final class TestData {
     public static final String SIM_DISCRETE_DATA_TRUE_PAG_FROM_DAG_GRAPH = TestData.class
             .getResource("/data/discrete_20var_1kcase/graph/true_pag_from_dag.txt").getFile();
 
-    public static final String BOOTSTRAPPING_DATA_DIR = Paths.get("src", "test", "resources", "data", "bootstrapping").toString();
+    public static final String BOOTSTRAPPING_DATA_DIR = Paths
+            .get("src", "test", "resources", "data", "bootstrapping").toString();
 
-    public static final String RFCI_DATA_DIR = Paths.get("src", "test", "resources", "results", "rfci").toString();
+    public static final String RFCI_DATA_DIR = Paths
+            .get("src", "test", "resources", "results", "rfci").toString();
+
+    public static final String PAG_SAMPLING_RFCI_DATA_DIR = Paths
+            .get("src", "test", "resources", "results", "pag_sampling_rfci").toString();
 
     private TestData() {
     }
