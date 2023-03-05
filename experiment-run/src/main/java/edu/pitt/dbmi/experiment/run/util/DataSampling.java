@@ -37,7 +37,7 @@ public final class DataSampling {
     private DataSampling() {
     }
 
-    private static RandomGenerator createRandomGenerator(long seed) {
+    public static RandomGenerator createRandomGenerator(long seed) {
         return (seed < 0)
                 ? new SynchronizedRandomGenerator(new Well44497b(System.nanoTime()))
                 : new SynchronizedRandomGenerator(new Well44497b(seed));

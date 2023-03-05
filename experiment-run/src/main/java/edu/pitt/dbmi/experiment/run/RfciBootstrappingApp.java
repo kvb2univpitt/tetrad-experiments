@@ -20,8 +20,10 @@ package edu.pitt.dbmi.experiment.run;
 
 import edu.cmu.tetrad.algcomparison.independence.ProbabilisticTest;
 import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.data.DataUtils;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Rfci;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
@@ -35,6 +37,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  *
@@ -47,18 +50,52 @@ public class RfciBootstrappingApp {
     private static void run(Path dataFile, Path dirOut) throws IOException {
         DataSet dataSet = (DataSet) ResourceLoader.readInDataModel(dataFile, Delimiter.TAB);
 
-        // bootstrap data sample
+        // data sampling parameters
         long seed = 1673588774198L;
-        int numberResampling = 99;
+        int numberOfResampling = 99;
         boolean includeOriginalDataset = true;
-        List<DataSet> dataSets = DataSampling.sampleWithReplacement(dataSet, seed, numberResampling, includeOriginalDataset);
+
+        // sample data
+        List<DataSet> dataSets = new LinkedList<>();
+        RandomGenerator randomGenerator = DataSampling.createRandomGenerator(seed);
+        int sampleSize = dataSet.getNumRows();
+        for (int i = 0; i < numberOfResampling; i++) {
+            dataSets.add(DataUtils.getBootstrapSample(dataSet, sampleSize, randomGenerator));
+        }
+        if (includeOriginalDataset) {
+            dataSets.add(dataSet);
+        }
 
         // algorithm parameters
         Parameters parameters = new Parameters();
         setRfciParameters(parameters);
         setProbabilisticTestParameters(parameters);
 
-        List<Graph> graphs = runSearches(dataSets, parameters);
+        // run searches on sample data
+        int numOfSearchRuns = 0;
+        List<Graph> graphs = new LinkedList<>();
+        for (DataSet data : dataSets) {
+            Graph graph = runSearch(data, parameters);
+            if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                graphs.add(graph);
+            }
+            numOfSearchRuns++;
+        }
+
+        // continue to run searches until you meet the required number of graphs
+        int numOfAdditionalSampling = 0;
+        int totalSampling = includeOriginalDataset ? numberOfResampling + 1 : numberOfResampling;
+        while (graphs.size() < totalSampling) {
+            numOfAdditionalSampling++;
+            DataSet sampleData = DataUtils.getBootstrapSample(dataSet, sampleSize, randomGenerator);
+
+            Graph graph = runSearch(sampleData, parameters);
+            if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                graphs.add(graph);
+            }
+            numOfSearchRuns++;
+        }
+
         Graph graph = Graphs.createGraphWithHighestProbabilityEdges(graphs);
 
         // write out details
@@ -88,7 +125,8 @@ public class RfciBootstrappingApp {
             writer.println("Bootstrapping");
             writer.println("----------------------------------------");
             writer.printf("Seed: %d%n", seed);
-            writer.printf("Number of Sampling: %d%n", numberResampling);
+            writer.printf("Number of Initial Sampling: %d%n", numberOfResampling);
+            writer.printf("Number of Additional Sampling: %d%n", numOfAdditionalSampling);
             writer.printf("Include Original Dataset: %s%n", includeOriginalDataset ? "Yes" : "No");
             writer.println();
 
@@ -99,18 +137,25 @@ public class RfciBootstrappingApp {
             writer.printf("Data Samples: %d%n", dataSets.size());
             writer.println();
 
+            writer.println("Search Run Details");
+            writer.println("----------------------------------------");
+            writer.printf("Number of Runs: %d%n", numOfSearchRuns);
+            writer.printf("Number of Valid PAGs: %d%n", graphs.size());
+            writer.printf("Number of Invalid PAGs: %d%n", numOfSearchRuns - graphs.size());
+            writer.println();
+
             writer.println("Graph Details");
             writer.println("----------------------------------------");
             writer.println(graph.toString().trim());
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details_rfci_bootstrap_1k.txt").toFile())) {
             writer.println(graph.toString().trim());
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_rfci_bootstrap_1k.txt").toFile())) {
             writer.println(Graphs.removeNullEdgeType(graph).toString().trim());
         }
     }

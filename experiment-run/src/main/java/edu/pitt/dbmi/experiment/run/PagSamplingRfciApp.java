@@ -54,7 +54,17 @@ public class PagSamplingRfciApp {
         setRfciParameters(parameters);
         setProbabilisticTestParameters(parameters);
 
-        List<Graph> graphs = runSearches(dataModel, parameters);
+        int numOfSearchRuns = 0;
+        List<Graph> graphs = new LinkedList<>();
+        int numRandomizedSearchModels = parameters.getInt(Params.NUM_RANDOMIZED_SEARCH_MODELS);
+        while (graphs.size() < numRandomizedSearchModels) {
+            Graph graph = runSearch(dataModel, parameters);
+            if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                graphs.add(graph);
+            }
+            numOfSearchRuns++;
+        }
+
         Graph graph = Graphs.createGraphWithHighestProbabilityEdges(graphs);
 
         // write out details
@@ -87,25 +97,31 @@ public class PagSamplingRfciApp {
             writer.printf("Cases: %d%n", ((DataSet) dataModel).getNumRows());
             writer.println();
 
+            writer.println("Search Run Details");
+            writer.println("----------------------------------------");
+            writer.printf("Number of Runs: %d%n", numOfSearchRuns);
+            writer.printf("Number of Valid PAGs: %d%n", graphs.size());
+            writer.printf("Number of Invalid PAGs: %d%n", numOfSearchRuns - graphs.size());
+            writer.println();
+
             writer.println("Graph Details");
             writer.println("----------------------------------------");
             writer.println(graph.toString().trim());
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details_pag_sampling_1k.txt").toFile())) {
             writer.println(graph.toString().trim());
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_pag_sampling_1k.txt").toFile())) {
             writer.println(Graphs.removeNullEdgeType(graph).toString().trim());
         }
     }
 
     private static List<Graph> runSearches(DataModel dataModel, Parameters parameters) {
         List<Graph> graphs = new LinkedList<>();
-
         int numRandomizedSearchModels = parameters.getInt(Params.NUM_RANDOMIZED_SEARCH_MODELS);
         while (graphs.size() < numRandomizedSearchModels) {
             Graph graph = runSearch(dataModel, parameters);
