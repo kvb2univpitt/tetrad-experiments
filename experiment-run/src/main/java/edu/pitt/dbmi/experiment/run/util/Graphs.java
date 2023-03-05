@@ -162,28 +162,34 @@ public final class Graphs {
 
         // frequency counts
         int nullEdgeCounts = 0;
-        Map<Edge, Integer> edgeTypeCounts = new HashMap<>();
+        Map<EdgeType, Integer> edgeTypeCounts = new HashMap<>();
+        Map<EdgeType, Edge> edgeTypeEdges = new HashMap<>();
         for (Graph graph : graphs) {
-            Edge edge = graph.getEdge(graph.getNode(node1.getName()), graph.getNode(node2.getName()));
+            Node graphNode1 = graph.getNode(node1.getName());
+            Node graphNode2 = graph.getNode(node2.getName());
+            Edge edge = graph.getEdge(graphNode1, graphNode2);
             if (edge == null) {
                 nullEdgeCounts++;
             } else {
-                Integer edgeCounts = edgeTypeCounts.get(edge);
-                edgeCounts = (edgeCounts == null) ? 1 : edgeCounts + 1;
+                EdgeType edgeType = getEdgeType(edge, graphNode1, graphNode2);
 
-                edgeTypeCounts.put(edge, edgeCounts);
+                edgeTypeEdges.put(edgeType, edge);
+
+                Integer edgeCounts = edgeTypeCounts.get(edgeType);
+                edgeCounts = (edgeCounts == null) ? 1 : edgeCounts + 1;
+                edgeTypeCounts.put(edgeType, edgeCounts);
             }
         }
 
         // compute probabilities
-        for (Edge edge : edgeTypeCounts.keySet()) {
-            EdgeType edgeType = getEdgeType(edge);
+        for (EdgeType edgeType : edgeTypeCounts.keySet()) {
+            Edge edge = edgeTypeEdges.get(edgeType);
             List<Property> properties = edge.getProperties();
-            double probability = (double) edgeTypeCounts.get(edge) / graphs.size();
+            double probability = (double) edgeTypeCounts.get(edgeType) / graphs.size();
 
             edgeTypeProbabilities.add(new EdgeTypeProbability(edgeType, properties, probability));
         }
-        if (nullEdgeCounts < graphs.size()) {
+        if ((nullEdgeCounts > 0) && (nullEdgeCounts < graphs.size())) {
             edgeTypeProbabilities.add(new EdgeTypeProbability(EdgeType.nil, (double) nullEdgeCounts / graphs.size()));
         }
 
@@ -202,9 +208,10 @@ public final class Graphs {
         return Arrays.asList(etps);
     }
 
-    private static EdgeType getEdgeType(Edge edge) {
-        Endpoint endpoint1 = edge.getEndpoint1();
-        Endpoint endpoint2 = edge.getEndpoint2();
+    private static EdgeType getEdgeType(Edge edge, Node node1, Node node2) {
+        Endpoint endpoint1 = edge.getProximalEndpoint(node1);
+        Endpoint endpoint2 = edge.getProximalEndpoint(node2);
+
         if (endpoint1 == Endpoint.TAIL && endpoint2 == Endpoint.ARROW) {
             return EdgeType.ta;
         } else if (endpoint1 == Endpoint.ARROW && endpoint2 == Endpoint.TAIL) {

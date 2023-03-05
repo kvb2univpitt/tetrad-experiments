@@ -28,6 +28,7 @@ import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.data.reader.Delimiter;
+import edu.pitt.dbmi.experiment.run.util.GraphPrintUtil;
 import edu.pitt.dbmi.experiment.run.util.Graphs;
 import edu.pitt.dbmi.experiment.run.util.ResourceLoader;
 import java.io.IOException;
@@ -104,18 +105,18 @@ public class PagSamplingRfciApp {
             writer.printf("Number of Invalid PAGs: %d%n", numOfSearchRuns - graphs.size());
             writer.println();
 
-            writer.println("Graph Details");
+            writer.println("Graph (null edges included)");
             writer.println("----------------------------------------");
             writer.println(graph.toString().trim());
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details_pag_sampling_1k.txt").toFile())) {
-            writer.println(graph.toString().trim());
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details.txt").toFile())) {
+            GraphPrintUtil.printDetails(graph, writer);
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_pag_sampling_1k.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph.txt").toFile())) {
             writer.println(Graphs.removeNullEdgeType(graph).toString().trim());
         }
     }

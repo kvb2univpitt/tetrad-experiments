@@ -29,6 +29,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.data.reader.Delimiter;
 import edu.pitt.dbmi.experiment.run.util.DataSampling;
+import edu.pitt.dbmi.experiment.run.util.GraphPrintUtil;
 import edu.pitt.dbmi.experiment.run.util.Graphs;
 import edu.pitt.dbmi.experiment.run.util.ResourceLoader;
 import java.io.IOException;
@@ -150,24 +151,14 @@ public class RfciBootstrappingApp {
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details_rfci_bootstrap_1k.txt").toFile())) {
-            writer.println(graph.toString().trim());
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details.txt").toFile())) {
+            GraphPrintUtil.printDetails(graph, writer);
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_rfci_bootstrap_1k.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph.txt").toFile())) {
             writer.println(Graphs.removeNullEdgeType(graph).toString().trim());
         }
-    }
-
-    private static List<Graph> runSearches(List<DataSet> dataSets, Parameters parameters) {
-        List<Graph> graphs = new LinkedList<>();
-
-        for (DataSet dataSet : dataSets) {
-            graphs.add(runSearch(dataSet, parameters));
-        }
-
-        return graphs;
     }
 
     private static Graph runSearch(DataSet dataSet, Parameters parameters) {
