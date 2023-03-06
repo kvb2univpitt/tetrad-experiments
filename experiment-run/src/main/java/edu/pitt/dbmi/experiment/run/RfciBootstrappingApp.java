@@ -145,7 +145,7 @@ public class RfciBootstrappingApp {
             writer.printf("Number of Invalid PAGs: %d%n", numOfSearchRuns - graphs.size());
             writer.println();
 
-            writer.println("Graph Details");
+            writer.println("Graph");
             writer.println("----------------------------------------");
             writer.println(graph.toString().trim());
         }

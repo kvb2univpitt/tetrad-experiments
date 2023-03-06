@@ -1,0 +1,48 @@
+Algorithm
+================================================================================
+Algorithm: PAG Sampling RFCI
+Test of Independence: Probabilistic Test
+
+Parameters
+----------------------------------------
+The number of search probabilistic model (min = 1): 100
+Yes if verbose output should be printed or logged: No
+The maximum length for any discriminating path. -1 if unlimited (min = -1): -1
+Maximum size of conditioning set (unlimited = -1): -1
+Independence cutoff threshold: 0.5
+Prior equivalent sample size (min = 1.0): 100.0
+Yes, if use the cutoff threshold for the independence test.: No
+
+Dataset
+----------------------------------------
+Variables: 20
+Cases: 1000
+
+Search Run Details
+----------------------------------------
+Number of Runs: 104
+Number of Valid PAGs: 100
+Number of Invalid PAGs: 4
+
+Graph (null edges included)
+----------------------------------------
+Graph Nodes:
+X1;X2;X3;X4;X5;X6;X7;X8;X9;X10;X11;X12;X13;X14;X15;X16;X17;X18;X19;X20
+
+Graph Edges:
+1. X1 --> X8 [X1 --> X8 pd pl]:1.0000;[edge]:1.0000 pd pl
+2. X7 --> X8 [X7 --> X8 pd pl]:1.0000;[edge]:1.0000 pd pl
+3. X1 o-o X3 [X1 o-o X3]:1.0000;[edge]:1.0000
+4. X1 o-o X6 [X1 o-o X6]:1.0000;[edge]:1.0000
+5. X3 o-o X7 [X3 o-o X7]:1.0000;[edge]:1.0000
+6. X6 o-o X14 [X6 o-o X14]:1.0000;[edge]:1.0000
+7. X2 <-> X16 [X2 <-> X16]:0.9600;[no edge]:0.0400;[edge]:0.9600
+8. X17 o-> X2 [X17 o-> X2]:0.9500;[X17 o-o X2]:0.0400;[X17 <-> X2]:0.0100;[edge]:1.0000
+9. X4 o-o X13 [X4 o-o X13]:0.9300;[X4 <-o X13]:0.0700;[edge]:1.0000
+10. X4 o-> X16 [X4 o-> X16]:0.8900;[X4 <-> X16]:0.0700;[X4 o-o X16]:0.0400;[edge]:1.0000
+11. X11 o-o X17 [X11 o-o X17]:0.8600;[X11 <-o X17]:0.1100;[no edge]:0.0200;[X11 <-> X17]:0.0100;[edge]:0.9800
+12. X13 o-o X15 [X13 o-o X15]:0.8600;[X13 o-> X15]:0.1400;[edge]:1.0000
+13. X11 o-> X2 [X11 o-> X2]:0.8200;[X11 <-> X2]:0.1300;[X11 o-o X2]:0.0400;[X11 --> X2 dd nl]:0.0100;[edge]:1.0000
+14. X5 - X19 [no edge]:0.7200;[X5 o-o X19]:0.2800;[edge]:0.2800
+15. X11 - X15 [no edge]:0.8600;[X11 <-> X15]:0.1400;[edge]:0.1400
+16. X9 - X18 [no edge]:0.9900;[X9 o-o X18]:0.0100;[edge]:0.0100

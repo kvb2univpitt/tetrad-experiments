@@ -108,10 +108,10 @@ public final class GraphPrintUtil {
     public static void printDetails(Graph graph, PrintStream writer) {
         writer.println(GraphUtils.graphNodesToText(graph,
                 "Graph Nodes:\n================================================================================",
-                ' '));
+                ','));
         writer.println();
         writer.println();
-        writer.println("Graph Edge List:");
+        writer.println("Graph Edge Type Probabilities:");
         writer.println("================================================================================");
         writer.println();
 
@@ -122,7 +122,7 @@ public final class GraphPrintUtil {
                 Node node2 = nodes[node2Index];
 
                 Edge edge = graph.getEdge(node1, node2);
-                writer.println(toString(edge));
+                writer.printf("Edge: %s, %s%n", node1, node2);
                 List<EdgeTypeProbability> etps = edge.getEdgeTypeProbabilities();
                 if (etps != null) {
                     writer.println("--------------------");

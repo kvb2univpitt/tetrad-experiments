@@ -41,7 +41,7 @@ public final class TestData {
             .get("src", "test", "resources", "data", "bootstrapping").toString();
 
     public static final String RFCI_DATA_DIR = Paths
-            .get("src", "test", "resources", "results", "rfci").toString();
+            .get("src", "test", "resources", "results", "rfci_bootstrapping").toString();
 
     public static final String PAG_SAMPLING_RFCI_DATA_DIR = Paths
             .get("src", "test", "resources", "results", "pag_sampling_rfci").toString();
