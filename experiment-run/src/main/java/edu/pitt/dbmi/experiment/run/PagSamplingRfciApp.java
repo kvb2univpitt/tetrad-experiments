@@ -69,7 +69,7 @@ public class PagSamplingRfciApp {
         Graph graph = Graphs.createGraphWithHighestProbabilityEdges(graphs);
 
         // write out details
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "run_details.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "run_details_pag_sampling_rfci.txt").toFile())) {
             writer.println("Algorithm");
             writer.println("================================================================================");
             writer.println("Algorithm: PAG Sampling RFCI");
@@ -111,12 +111,12 @@ public class PagSamplingRfciApp {
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details_pag_sampling_rfci.txt").toFile())) {
             GraphPrintUtil.printDetails(graph, writer);
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_pag_sampling_rfci.txt").toFile())) {
             writer.println(Graphs.removeNullEdgeType(graph).toString().trim());
         }
     }

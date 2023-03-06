@@ -21,6 +21,7 @@ package edu.pitt.dbmi.calibration.util;
 import edu.cmu.tetrad.graph.Edge;
 import edu.cmu.tetrad.graph.EdgeTypeProbability;
 import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
+import static edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType.ac;
 import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -57,11 +58,15 @@ public final class GraphCalibration {
             Node node2 = searchGraph.getNode(edgeValue.getNode2());
             Edge predictedEdge = searchGraph.getEdge(node1, node2);
             if (predictedEdge != null) {
-                if (node1.equals(predictedEdge.getNode1()) && node2.equals(predictedEdge.getNode2())) {
-                    List<EdgeTypeProbability> edgeTypeProbs = predictedEdge.getEdgeTypeProbabilities();
-                    if (edgeTypeProbs != null) {
-                        for (EdgeTypeProbability edgeTypeProb : edgeTypeProbs) {
+                List<EdgeTypeProbability> edgeTypeProbs = predictedEdge.getEdgeTypeProbabilities();
+                if (edgeTypeProbs != null) {
+                    for (EdgeTypeProbability edgeTypeProb : edgeTypeProbs) {
+                        if (node1 == predictedEdge.getNode1() && node2 == predictedEdge.getNode2()) {
                             if (edgeValue.getEdgeType() == edgeTypeProb.getEdgeType()) {
+                                edgeValue.setPredictedValue(edgeTypeProb.getProbability());
+                            }
+                        } else if (node1 == predictedEdge.getNode2() && node2 == predictedEdge.getNode1()) {
+                            if (edgeValue.getEdgeType() == getReversed(edgeTypeProb.getEdgeType())) {
                                 edgeValue.setPredictedValue(edgeTypeProb.getProbability());
                             }
                         }
@@ -84,9 +89,25 @@ public final class GraphCalibration {
         }
     }
 
+    private static EdgeType getReversed(EdgeType edgeType) {
+        switch (edgeType) {
+            case ac:
+                return EdgeType.ca;
+            case at:
+                return EdgeType.ta;
+            case ca:
+                return EdgeType.ac;
+            case ta:
+                return EdgeType.at;
+            default:
+                return edgeType;
+        }
+    }
+
     private static EdgeType getEdgeType(Edge edge, Node node1, Node node2) {
         Endpoint endpoint1 = edge.getProximalEndpoint(node1);
         Endpoint endpoint2 = edge.getProximalEndpoint(node2);
+
         if (endpoint1 == Endpoint.TAIL && endpoint2 == Endpoint.ARROW) {
             return EdgeType.ta;
         } else if (endpoint1 == Endpoint.ARROW && endpoint2 == Endpoint.TAIL) {

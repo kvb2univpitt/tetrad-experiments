@@ -18,7 +18,7 @@
  */
 package edu.pitt.dbmi.calibration.util;
 
-import edu.cmu.tetrad.graph.EdgeTypeProbability;
+import edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType;
 import static edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType.aa;
 import static edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType.ac;
 import static edu.cmu.tetrad.graph.EdgeTypeProbability.EdgeType.at;
@@ -92,7 +92,7 @@ public final class PrintUtility {
         }
     }
 
-    public static String toString(EdgeTypeProbability.EdgeType edgeType) {
+    public static String toString(EdgeType edgeType) {
         switch (edgeType) {
             case aa:
                 return "<->";

@@ -100,7 +100,7 @@ public class RfciBootstrappingApp {
         Graph graph = Graphs.createGraphWithHighestProbabilityEdges(graphs);
 
         // write out details
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "run_details.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "run_details_rfci_bootstrapping.txt").toFile())) {
             writer.println("Algorithm");
             writer.println("================================================================================");
             writer.println("Algorithm: RFCI");
@@ -151,12 +151,12 @@ public class RfciBootstrappingApp {
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_details_rfci_bootstrapping.txt").toFile())) {
             GraphPrintUtil.printDetails(graph, writer);
         }
 
         // write out graph
-        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph.txt").toFile())) {
+        try (PrintStream writer = new PrintStream(Paths.get(dirOut.toString(), "graph_rfci_bootstrapping.txt").toFile())) {
             writer.println(Graphs.removeNullEdgeType(graph).toString().trim());
         }
     }

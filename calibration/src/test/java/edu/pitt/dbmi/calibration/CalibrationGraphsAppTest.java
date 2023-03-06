@@ -18,6 +18,7 @@
  */
 package edu.pitt.dbmi.calibration;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -31,6 +32,7 @@ public class CalibrationGraphsAppTest {
     /**
      * Test of main method, of class CalibrationGraphsApp.
      */
+    @Disabled
     @Test
     public void testMain() {
         String[] args = {

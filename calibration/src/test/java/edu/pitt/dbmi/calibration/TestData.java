@@ -29,16 +29,16 @@ import java.nio.file.Paths;
 public final class TestData {
 
     public static final String PAG_SAMPLING_GRAPH = Paths
-            .get("src", "test", "resources", "data", "graph", "graph_pag_sampling_1k.txt").toString();
+            .get("src", "test", "resources", "data", "graph", "experiments", "pag_sampling_rfci", "graph_pag_sampling_rfci.txt").toString();
 
     public static final String RFCI_BOOTSTRAPPING_GRAPH = Paths
-            .get("src", "test", "resources", "data", "graph", "graph_rfci_bootstrap_1k.txt").toString();
+            .get("src", "test", "resources", "data", "graph", "experiments", "rfci_bootstrapping", "graph_rfci_bootstrapping.txt").toString();
 
     public static final String TRUE_GRAPH = Paths
-            .get("src", "test", "resources", "data", "graph", "true_graph.txt").toString();
+            .get("src", "test", "resources", "data", "graph", "true_graphs", "true_graph.txt").toString();
 
     public static final String TRUE_PAG_FROM_DAG_GRAPH = Paths
-            .get("src", "test", "resources", "data", "graph", "true_pag_from_dag.txt").toString();
+            .get("src", "test", "resources", "data", "graph", "true_graphs", "true_pag_from_dag.txt").toString();
 
     public static final String OUTPUT_DIR = Paths
             .get("src", "test", "resources", "results").toString();
