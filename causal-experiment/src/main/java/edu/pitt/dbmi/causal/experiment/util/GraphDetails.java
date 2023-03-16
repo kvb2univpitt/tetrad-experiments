@@ -65,37 +65,49 @@ public final class GraphDetails {
                 String node1 = edge.getNode1().getName();
                 String node2 = edge.getNode2().getName();
 
-                // header
                 Edge trueEdge = trueGraph.getEdge(trueGraph.getNode(node1), trueGraph.getNode(node2));
+                Edge predictedEdge = graph.getEdge(graph.getNode(node1), graph.getNode(node2));
+
+                // header
+                boolean hasHeader = false;
                 if (trueEdge == null) {
-                    writer.printf("True: %s ... %s%n", node1, node2);
+                    if (!(predictedEdge == null || predictedEdge.isNull())) {
+                        hasHeader = true;
+
+                        writer.printf("True: %s ... %s%n", node1, node2);
+                        writer.println("--------------------");
+                    }
                 } else {
+                    hasHeader = true;
+
                     writer.printf("True: %s%n", Edges.toString(trueEdge));
+                    writer.println("--------------------");
                     node1 = trueEdge.getNode1().toString();
                     node2 = trueEdge.getNode2().toString();
                 }
-                writer.println("--------------------");
 
                 // body
-                Edge predictedEdge = graph.getEdge(graph.getNode(node1), graph.getNode(node2));
-                if (predictedEdge == null) {
-                    writer.printf("%s ... %s: 1.000000%n", node1, node2);
-                } else {
-                    List<EdgeTypeProbability> etps = predictedEdge.getEdgeTypeProbabilities();
-                    if (etps != null) {
-                        for (EdgeTypeProbability etp : etps) {
-                            String edgeType = (node1.equals(predictedEdge.getNode1().getName()))
-                                    ? Edges.toString(etp.getEdgeType())
-                                    : Edges.toString(getReversed(etp.getEdgeType()));
-                            writer.printf("%s %s %s: %f%n",
-                                    node1,
-                                    edgeType,
-                                    node2,
-                                    etp.getProbability());
+                if (hasHeader) {
+                    if (predictedEdge == null) {
+                        writer.printf("%s ... %s: 1.000000%n", node1, node2);
+                    } else {
+                        List<EdgeTypeProbability> etps = predictedEdge.getEdgeTypeProbabilities();
+                        if (etps != null) {
+                            for (EdgeTypeProbability etp : etps) {
+                                String edgeType = (node1.equals(predictedEdge.getNode1().getName()))
+                                        ? Edges.toString(etp.getEdgeType())
+                                        : Edges.toString(getReversed(etp.getEdgeType()));
+                                writer.printf("%s %s %s: %f%n",
+                                        node1,
+                                        edgeType,
+                                        node2,
+                                        etp.getProbability());
+                            }
                         }
                     }
+                    writer.println();
                 }
-                writer.println();
+
             });
         }
     }
