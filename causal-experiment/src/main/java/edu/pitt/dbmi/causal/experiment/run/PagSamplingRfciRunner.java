@@ -16,7 +16,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package edu.pitt.dbmi.causal.experiment;
+package edu.pitt.dbmi.causal.experiment.run;
 
 import edu.cmu.tetrad.algcomparison.independence.ProbabilisticTest;
 import edu.cmu.tetrad.data.DataModel;
@@ -29,37 +29,35 @@ import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.causal.experiment.calibration.GraphStatistics;
+import edu.pitt.dbmi.causal.experiment.data.SimulatedData;
 import edu.pitt.dbmi.causal.experiment.tetrad.Graphs;
+import edu.pitt.dbmi.causal.experiment.util.FileIO;
 import edu.pitt.dbmi.causal.experiment.util.GraphDetails;
-import edu.pitt.dbmi.causal.experiment.util.ResourceLoader;
-import edu.pitt.dbmi.data.reader.Delimiter;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
  *
- * Mar 4, 2023 9:41:02 AM
+ * Mar 22, 2023 9:35:45 PM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class PagSamplingRfciApp {
+public class PagSamplingRfciRunner extends AbstractRunner {
 
-    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm:ss");
+    public PagSamplingRfciRunner(SimulatedData simulatedData, Parameters parameters) {
+        super(simulatedData, parameters);
+    }
 
-    private static final String TITLE = "PAG Sampling RFCI";
-
-    private static void run(Path dataFile, Path trueGraphFile, Path dirOut) throws IOException {
-        Graph trueGraph = ResourceLoader.loadGraph(trueGraphFile);
-        DataSet dataSet = (DataSet) ResourceLoader.loadDataModel(dataFile, Delimiter.TAB);
-
-        Parameters parameters = getParameters();
+    @Override
+    public void run(Path parentOutDir) throws Exception {
+        Graph pagFromDagGraph = simulatedData.getPagFromDagGraph();
+        DataSet dataSet = simulatedData.getDataSet();
+        Path dirOut = FileIO.createSubdirectory(parentOutDir, "pag_sampling_rfci");
 
         final LocalDateTime startDateTime = LocalDateTime.now();
         final long startTime = System.nanoTime();
@@ -82,7 +80,7 @@ public class PagSamplingRfciApp {
         Graph searchGraph = GraphSampling.createGraphWithHighProbabilityEdges(graphs);
 
         String outputDir = dirOut.toString();
-        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, trueGraph);
+        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
         graphCalibration.saveGraphData(Paths.get(outputDir, "edge_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
@@ -90,14 +88,14 @@ public class PagSamplingRfciApp {
                 1000, 1000,
                 Paths.get(outputDir, "calibration.png"));
 
-        GraphDetails.saveDetails(trueGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
+        GraphDetails.saveDetails(pagFromDagGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
 
         Graphs.saveGraph(searchGraph, Paths.get(outputDir, "graph.txt"));
         Graphs.exportAsPngImage(searchGraph, 1000, 1000, Paths.get(outputDir, "graph.png"));
 
         // write out details
         try (PrintStream writer = new PrintStream(Paths.get(outputDir, "run_details.txt").toFile())) {
-            writer.println(TITLE);
+            writer.println("PAG Sampling RFCI");
             writer.println("================================================================================");
             writer.println("Algorithm: PAG Sampling RFCI");
             writer.println();
@@ -137,7 +135,7 @@ public class PagSamplingRfciApp {
         }
     }
 
-    private static void printParameters(Parameters parameters, PrintStream writer) {
+    private void printParameters(Parameters parameters, PrintStream writer) {
         ParamDescriptions paramDescs = ParamDescriptions.getInstance();
 
         writer.println("PAG Sampling RFCI");
@@ -173,65 +171,13 @@ public class PagSamplingRfciApp {
                 getParameterValue(parameters, Params.NO_RANDOMLY_DETERMINED_INDEPENDENCE));
     }
 
-    private static String getParameterValue(Parameters parameters, String name) {
-        String paramValue = String.valueOf(parameters.get(name));
-        if (paramValue.equals("true")) {
-            paramValue = "Yes";
-        } else if (paramValue.equals("false")) {
-            paramValue = "No";
-        }
-
-        return paramValue;
-    }
-
-    private static Graph runSearch(DataModel dataModel, Parameters parameters) {
+    private Graph runSearch(DataModel dataModel, Parameters parameters) {
         Rfci rfci = new Rfci((new ProbabilisticTest()).getTest(dataModel, parameters));
         rfci.setDepth(parameters.getInt(Params.DEPTH));
         rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
         rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
         return rfci.search();
-    }
-
-    private static Parameters getParameters() {
-        Parameters parameters = new Parameters();
-
-        // pag sampling
-        int numRandomizedSearchModels = 100;
-        parameters.set(Params.NUM_RANDOMIZED_SEARCH_MODELS, numRandomizedSearchModels);
-
-        // rfci
-        int maxPathLength = -1;
-        int depth = -1;
-        boolean verbose = false;
-        parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
-        parameters.set(Params.DEPTH, depth);
-        parameters.set(Params.VERBOSE, verbose);
-
-        // probabilistic test of independence
-        double cutoffIndTest = 0.5;
-        double priorEquivalentSampleSize = 10;
-        boolean noRandomlyDeterminedIndependence = false;
-        parameters.set(Params.CUTOFF_IND_TEST, cutoffIndTest);
-        parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, priorEquivalentSampleSize);
-        parameters.set(Params.NO_RANDOMLY_DETERMINED_INDEPENDENCE, noRandomlyDeterminedIndependence);
-
-        return parameters;
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        System.out.println("================================================================================");
-        System.out.println(TITLE);
-        System.out.println("================================================================================");
-        try {
-            run(Paths.get(args[0]), Paths.get(args[1]), Paths.get(args[2]));
-        } catch (Exception exception) {
-            exception.printStackTrace(System.err);
-        }
-        System.out.println("================================================================================");
     }
 
 }

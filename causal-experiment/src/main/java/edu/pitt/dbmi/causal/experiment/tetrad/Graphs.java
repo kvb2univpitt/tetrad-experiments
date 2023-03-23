@@ -18,16 +18,17 @@
  */
 package edu.pitt.dbmi.causal.experiment.tetrad;
 
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Endpoint;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.LayoutUtil;
+import edu.cmu.tetrad.util.GraphSampling;
 import edu.cmu.tetradapp.workbench.GraphWorkbench;
+import edu.pitt.dbmi.causal.experiment.data.SimulatedData;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 
 /**
@@ -41,11 +42,21 @@ public final class Graphs {
     private Graphs() {
     }
 
+    public static void saveSourceGraphs(Path outputDir, SimulatedData data) throws IOException {
+        saveGraph(data.getTrueGraph(), Paths.get(outputDir.toString(), "true_graph.txt"));
+        saveGraph(data.getPagFromDagGraph(), Paths.get(outputDir.toString(), "true_pag_from_dag_graph.txt"));
+
+        int width = 1000;
+        int height = 1000;
+        exportAsPngImage(data.getTrueGraph(), width, height, Paths.get(outputDir.toString(), "true_graph.png"));
+        exportAsPngImage(data.getPagFromDagGraph(), width, height, Paths.get(outputDir.toString(), "true_pag_from_dag_graph.png"));
+    }
+
     public static void exportAsPngImage(Graph graph, int width, int height, Path output) {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
         Graphics graphics = image.getGraphics();
 
-        graph = removeNullEdges(graph);
+        graph = GraphSampling.createGraphWithoutNullEdges(graph);
 
         int radius = (int) (width * 0.40);
         LayoutUtil.circleLayout(graph, width / 2, height / 2, radius);
@@ -63,17 +74,8 @@ public final class Graphs {
 
     public static void saveGraph(Graph graph, Path file) throws IOException {
         try (PrintStream writer = new PrintStream(file.toFile())) {
-            writer.println(removeNullEdges(graph).toString().trim());
+            writer.println(GraphSampling.createGraphWithoutNullEdges(graph).toString().trim());
         }
-    }
-
-    private static Graph removeNullEdges(Graph graph) {
-        Graph myGraph = new EdgeListGraph(graph.getNodes());
-        graph.getEdges().stream()
-                .filter(edge -> !(edge.getEndpoint1() == Endpoint.NULL || edge.getEndpoint2() == Endpoint.NULL))
-                .forEach(myGraph::addEdge);
-
-        return myGraph;
     }
 
 }

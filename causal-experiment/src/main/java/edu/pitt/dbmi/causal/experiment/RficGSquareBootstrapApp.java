@@ -23,14 +23,13 @@ import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Rfci;
 import edu.cmu.tetrad.search.SearchGraphUtils;
+import edu.cmu.tetrad.util.GraphSampling;
 import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.causal.experiment.calibration.GraphStatistics;
-import edu.pitt.dbmi.causal.experiment.tetrad.GraphSampling;
 import edu.pitt.dbmi.causal.experiment.tetrad.Graphs;
 import edu.pitt.dbmi.causal.experiment.util.DataSampling;
-import static edu.pitt.dbmi.causal.experiment.util.DataSampling.createRandomGenerator;
 import edu.pitt.dbmi.causal.experiment.util.GraphDetails;
 import edu.pitt.dbmi.causal.experiment.util.ResourceLoader;
 import edu.pitt.dbmi.data.reader.Delimiter;
@@ -63,7 +62,7 @@ public class RficGSquareBootstrapApp {
         // get algorithm parameters
         Parameters parameters = getParameters();
 
-        RandomGenerator randGen = createRandomGenerator(parameters);
+        RandomGenerator randGen = DataSampling.createRandomGenerator(parameters);
         List<DataSet> dataSets = DataSampling.sample(dataSet, parameters, randGen);
 
         // start the timer

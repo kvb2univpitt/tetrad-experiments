@@ -19,9 +19,12 @@
 package edu.pitt.dbmi.causal.experiment.util;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,6 +64,31 @@ public final class FileIO {
 
     public static Path createSubdirectory(Path dir, String name) throws IOException {
         return Files.createDirectory(Paths.get(dir.toString(), name));
+    }
+
+    public static Path createNewDirectory(Path directory) throws IOException {
+        deleteDirectory(directory);
+        return createDirectory(directory);
+    }
+
+    public static boolean deleteDirectory(Path directory) throws IOException {
+        if (Files.exists(directory) && Files.isDirectory(directory)) {
+            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+
+        return Files.notExists(directory);
     }
 
     public static List<String> getFileLineByLine(Path file) {

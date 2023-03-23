@@ -16,9 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301  USA
  */
-package edu.pitt.dbmi.causal.experiment;
+package edu.pitt.dbmi.causal.experiment.run;
 
-import edu.cmu.tetrad.algcomparison.independence.ProbabilisticTest;
+import edu.cmu.tetrad.algcomparison.independence.GSquare;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Rfci;
@@ -28,16 +28,15 @@ import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.causal.experiment.calibration.GraphStatistics;
+import edu.pitt.dbmi.causal.experiment.data.SimulatedData;
 import edu.pitt.dbmi.causal.experiment.tetrad.Graphs;
 import edu.pitt.dbmi.causal.experiment.util.DataSampling;
+import edu.pitt.dbmi.causal.experiment.util.FileIO;
 import edu.pitt.dbmi.causal.experiment.util.GraphDetails;
-import edu.pitt.dbmi.causal.experiment.util.ResourceLoader;
-import edu.pitt.dbmi.data.reader.Delimiter;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,22 +44,21 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  *
- * Feb 27, 2023 3:14:43 PM
+ * Mar 22, 2023 10:50:26 PM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class RficProbabilisticBootstrapApp {
+public class RficGSquareBootstrapRunner extends AbstractRunner {
 
-    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm:ss");
+    public RficGSquareBootstrapRunner(SimulatedData simulatedData, Parameters parameters) {
+        super(simulatedData, parameters);
+    }
 
-    private static final String TITLE = "Rfci with Bootstrapping Using Probabilistic Test";
-
-    private static void run(Path dataFile, Path trueGraphFile, Path dirOut) throws Exception {
-        Graph trueGraph = ResourceLoader.loadGraph(trueGraphFile);
-        DataSet dataSet = (DataSet) ResourceLoader.loadDataModel(dataFile, Delimiter.TAB);
-
-        // get algorithm parameters
-        Parameters parameters = getParameters();
+    @Override
+    public void run(Path parentOutDir) throws Exception {
+        Graph pagFromDagGraph = simulatedData.getPagFromDagGraph();
+        DataSet dataSet = simulatedData.getDataSet();
+        Path dirOut = FileIO.createSubdirectory(parentOutDir, "rfic_g2_bootstrap");
 
         RandomGenerator randGen = DataSampling.createRandomGenerator(parameters);
         List<DataSet> dataSets = DataSampling.sample(dataSet, parameters, randGen);
@@ -101,24 +99,24 @@ public class RficProbabilisticBootstrapApp {
         Graph searchGraph = GraphSampling.createGraphWithHighProbabilityEdges(graphs);
 
         String outputDir = dirOut.toString();
-        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, trueGraph);
+        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
         graphCalibration.saveGraphData(Paths.get(outputDir, "edge_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
-                "RFCI-Probabilistic Bootstrapping", "rfci-bootstrapping",
+                "RFCI-G2 Bootstrapping", "rfci-g2-bs",
                 1000, 1000,
                 Paths.get(outputDir, "calibration.png"));
 
-        GraphDetails.saveDetails(trueGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
+        GraphDetails.saveDetails(pagFromDagGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
         Graphs.saveGraph(searchGraph, Paths.get(outputDir, "graph.txt"));
         Graphs.exportAsPngImage(searchGraph, 1000, 1000, Paths.get(outputDir, "graph.png"));
 
         // write out details
         try (PrintStream writer = new PrintStream(Paths.get(outputDir, "run_details.txt").toFile())) {
-            writer.println(TITLE);
+            writer.println("Rfci with Bootstrapping Using G Square Test");
             writer.println("================================================================================");
             writer.println("Algorithm: RFCI");
-            writer.println("Test of Independence: Probabilistic Test");
+            writer.println("Test of Independence: G Square Test");
             writer.println();
 
             writer.println("Parameters");
@@ -162,15 +160,6 @@ public class RficProbabilisticBootstrapApp {
         }
     }
 
-    private static Graph runSearch(DataSet dataSet, Parameters parameters) {
-        Rfci rfci = new Rfci((new ProbabilisticTest()).getTest(dataSet, parameters));
-        rfci.setDepth(parameters.getInt(Params.DEPTH));
-        rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
-        rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
-
-        return rfci.search();
-    }
-
     private static void printParameters(Parameters parameters, PrintStream writer) {
         ParamDescriptions paramDescs = ParamDescriptions.getInstance();
 
@@ -187,17 +176,11 @@ public class RficProbabilisticBootstrapApp {
                 getParameterValue(parameters, Params.VERBOSE));
         writer.println();
 
-        writer.println("Probabilistic Test");
+        writer.println("G Square Test");
         writer.println("--------------------");
         writer.printf("%s: %s%n",
-                paramDescs.get(Params.CUTOFF_IND_TEST).getShortDescription(),
-                getParameterValue(parameters, Params.CUTOFF_IND_TEST));
-        writer.printf("%s: %s%n",
-                paramDescs.get(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE).getShortDescription(),
-                getParameterValue(parameters, Params.PRIOR_EQUIVALENT_SAMPLE_SIZE));
-        writer.printf("%s: %s%n",
-                paramDescs.get(Params.NO_RANDOMLY_DETERMINED_INDEPENDENCE).getShortDescription(),
-                getParameterValue(parameters, Params.NO_RANDOMLY_DETERMINED_INDEPENDENCE));
+                paramDescs.get(Params.ALPHA).getShortDescription(),
+                getParameterValue(parameters, Params.ALPHA));
         writer.println();
 
         writer.println("Bootstrapping");
@@ -216,65 +199,13 @@ public class RficProbabilisticBootstrapApp {
                 getParameterValue(parameters, Params.RESAMPLING_WITH_REPLACEMENT));
     }
 
-    private static String getParameterValue(Parameters parameters, String name) {
-        String paramValue = String.valueOf(parameters.get(name));
-        if (paramValue.equals("true")) {
-            paramValue = "Yes";
-        } else if (paramValue.equals("false")) {
-            paramValue = "No";
-        }
+    private Graph runSearch(DataSet dataSet, Parameters parameters) {
+        Rfci rfci = new Rfci((new GSquare()).getTest(dataSet, parameters));
+        rfci.setDepth(parameters.getInt(Params.DEPTH));
+        rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
+        rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
-        return paramValue;
-    }
-
-    private static Parameters getParameters() {
-        Parameters parameters = new Parameters();
-
-        // rfci
-        int maxPathLength = -1;
-        int depth = -1;
-        boolean verbose = false;
-        parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
-        parameters.set(Params.DEPTH, depth);
-        parameters.set(Params.VERBOSE, verbose);
-
-        // probabilistic test of independence
-        double cutoffIndTest = 0.5;
-        double priorEquivalentSampleSize = 10;
-        boolean noRandomlyDeterminedIndependence = true;
-        parameters.set(Params.CUTOFF_IND_TEST, cutoffIndTest);
-        parameters.set(Params.PRIOR_EQUIVALENT_SAMPLE_SIZE, priorEquivalentSampleSize);
-        parameters.set(Params.NO_RANDOMLY_DETERMINED_INDEPENDENCE, noRandomlyDeterminedIndependence);
-
-        // bootstrapping
-        long seed = 1673588774198L;
-        int numberOfResampling = 99;
-        boolean addOriginalDataset = true;
-        boolean resamplingWithReplacement = true;
-        parameters.set(Params.SEED, seed);
-        parameters.set(Params.NUMBER_RESAMPLING, numberOfResampling);
-        parameters.set(Params.ADD_ORIGINAL_DATASET, addOriginalDataset);
-        parameters.set(Params.RESAMPLING_WITH_REPLACEMENT, resamplingWithReplacement);
-
-        return parameters;
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        System.out.println("================================================================================");
-        System.out.println(TITLE);
-        System.out.println("================================================================================");
-        Path datasetFile = Paths.get(args[0]);
-        Path truePagFromDagGraphFile = Paths.get(args[1]);
-        Path dirOut = Paths.get(args[2]);
-        try {
-            run(datasetFile, truePagFromDagGraphFile, dirOut);
-        } catch (Exception exception) {
-            exception.printStackTrace(System.err);
-        }
-        System.out.println("================================================================================");
+        return rfci.search();
     }
 
 }
