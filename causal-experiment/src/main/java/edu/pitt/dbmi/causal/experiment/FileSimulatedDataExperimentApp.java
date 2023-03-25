@@ -18,6 +18,9 @@
  */
 package edu.pitt.dbmi.causal.experiment;
 
+import edu.cmu.tetrad.data.DataSet;
+import edu.cmu.tetrad.graph.Graph;
+import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.causal.experiment.data.SimulatedData;
@@ -26,40 +29,27 @@ import edu.pitt.dbmi.causal.experiment.run.RficGSquareBootstrapRunner;
 import edu.pitt.dbmi.causal.experiment.run.RficProbabilisticBootstrapRunner;
 import edu.pitt.dbmi.causal.experiment.tetrad.Graphs;
 import edu.pitt.dbmi.causal.experiment.util.FileIO;
-import edu.pitt.dbmi.causal.experiment.util.SimulatedDataFactory;
+import edu.pitt.dbmi.causal.experiment.util.ResourceLoader;
+import edu.pitt.dbmi.data.reader.Delimiter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
  *
- * Mar 21, 2023 11:01:56 AM
+ * Mar 24, 2023 10:54:41 PM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class SimulatedDataExperiments {
+public class FileSimulatedDataExperimentApp {
 
-    public static long[] SEEDS = {
-        11584893960885L,
-        11766404864237L,
-        11927785918362L,
-        11946365959146L,
-        11964686746954L,
-        11987268975470L,
-        12399190681453L,
-        12420632440237L,
-        12434943985933L,
-        12449569371213L
-    };
-
-    private static void run(Path dirout) throws Exception {
+    private static void run(Path dataFile, Path graphFile, Path dirout) throws Exception {
         // clean
         Path experimentFolder = Paths.get(dirout.toString(), "experiments");
         FileIO.createNewDirectory(experimentFolder);
-        for (int i = 0; i < SEEDS.length; i++) {
+        for (int i = 0; i < 1; i++) {
             Path iExperimentFolder = FileIO.createSubdirectory(experimentFolder, String.format("experiment_%d", i + 1));
 
-            Path dataFolder = FileIO.createSubdirectory(iExperimentFolder, "data");
-            SimulatedData simData = SimulatedDataFactory.createBayesNetSimulationData(SEEDS[i], dataFolder);
+            SimulatedData simData = getBayesNetSimulationData(dataFile, graphFile);
 
             Path graphFolder = FileIO.createSubdirectory(iExperimentFolder, "graphs");
             Graphs.saveSourceGraphs(graphFolder, simData);
@@ -166,15 +156,21 @@ public class SimulatedDataExperiments {
         return parameters;
     }
 
-    /**
-     * @param args the command line arguments
-     */
+    public static SimulatedData getBayesNetSimulationData(Path dataFile, Path graphFile) throws Exception {
+        DataSet dataSet = (DataSet) ResourceLoader.loadDataModel(dataFile, Delimiter.TAB);
+        Graph trueGraph = ResourceLoader.loadGraph(graphFile);
+
+        Graph pagFromDagGraph = SearchGraphUtils.dagToPag(trueGraph);
+
+        return new SimulatedData(dataSet, trueGraph, pagFromDagGraph);
+    }
+
     public static void main(String[] args) {
         System.out.println("================================================================================");
-        System.out.println("Simulated Data Experiments");
+        System.out.println("File Simulated Data Experiments");
         System.out.println("================================================================================");
         try {
-            run(Paths.get(args[0]));
+            run(Paths.get(args[0]), Paths.get(args[1]), Paths.get(args[2]));
         } catch (Exception exception) {
             exception.printStackTrace(System.err);
         }

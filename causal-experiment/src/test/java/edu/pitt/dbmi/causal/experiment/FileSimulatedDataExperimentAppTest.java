@@ -28,30 +28,30 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  *
- * Mar 4, 2023 9:41:33 AM
+ * Mar 24, 2023 11:12:01 PM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class PagSamplingRfciAppTest {
+public class FileSimulatedDataExperimentAppTest {
 
     @TempDir
     public static Path tempDir;
 
     /**
-     * Test of main method, of class PagSamplingRfciApp.
+     * Test of main method, of class FileSimulatedDataExperimentApp.
      */
     @Disabled
     @Test
     public void testMain() throws Exception {
-        String dataset = DataFiles.SIM_DISC_20VAR_1KCASE_2;
-        String trueGraph = GraphFiles.SIM_DISC_20VAR_1KCASE_2_TRUE_GRAPH;
-        String dirOut = FileIO.createSubdirectory(tempDir, "pag_sampling_rfci").toString();
+        String dataset = DataFiles.SIM_DISC_20VAR_1KCASE;
+        String trueGraph = GraphFiles.SIM_DISC_20VAR_1KCASE_TRUE_GRAPH;
+        String dirOut = FileIO.createSubdirectory(tempDir, "sim_data_exp").toString();
         String[] args = {
             dataset,
             trueGraph,
             dirOut
         };
-        PagSamplingRfciApp.main(args);
+        FileSimulatedDataExperimentApp.main(args);
     }
 
 }

@@ -57,6 +57,7 @@ public class RficProbabilisticBootstrapApp {
 
     private static void run(Path dataFile, Path trueGraphFile, Path dirOut) throws Exception {
         Graph trueGraph = ResourceLoader.loadGraph(trueGraphFile);
+        Graph pagFromDagGraph = SearchGraphUtils.dagToPag(trueGraph);
         DataSet dataSet = (DataSet) ResourceLoader.loadDataModel(dataFile, Delimiter.TAB);
 
         // get algorithm parameters
@@ -101,7 +102,7 @@ public class RficProbabilisticBootstrapApp {
         Graph searchGraph = GraphSampling.createGraphWithHighProbabilityEdges(graphs);
 
         String outputDir = dirOut.toString();
-        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, trueGraph);
+        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
         graphCalibration.saveGraphData(Paths.get(outputDir, "edge_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
@@ -109,7 +110,7 @@ public class RficProbabilisticBootstrapApp {
                 1000, 1000,
                 Paths.get(outputDir, "calibration.png"));
 
-        GraphDetails.saveDetails(trueGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
+        GraphDetails.saveDetails(pagFromDagGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
         Graphs.saveGraph(searchGraph, Paths.get(outputDir, "graph.txt"));
         Graphs.exportAsPngImage(searchGraph, 1000, 1000, Paths.get(outputDir, "graph.png"));
 
@@ -267,10 +268,10 @@ public class RficProbabilisticBootstrapApp {
         System.out.println(TITLE);
         System.out.println("================================================================================");
         Path datasetFile = Paths.get(args[0]);
-        Path truePagFromDagGraphFile = Paths.get(args[1]);
+        Path trueGraph = Paths.get(args[1]);
         Path dirOut = Paths.get(args[2]);
         try {
-            run(datasetFile, truePagFromDagGraphFile, dirOut);
+            run(datasetFile, trueGraph, dirOut);
         } catch (Exception exception) {
             exception.printStackTrace(System.err);
         }

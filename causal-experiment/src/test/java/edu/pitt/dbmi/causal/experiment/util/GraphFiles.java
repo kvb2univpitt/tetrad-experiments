@@ -26,11 +26,11 @@ package edu.pitt.dbmi.causal.experiment.util;
  */
 public final class GraphFiles {
 
-    public static final String SIM_DISC_20VAR_1KCASE_PAG_FROM_DAG_GRAPH = DataFiles.class
-            .getResource("/data/discrete_20var_1kcase/graph/true_pag_from_dag.txt").getFile();
+    public static final String SIM_DISC_20VAR_1KCASE_TRUE_GRAPH = DataFiles.class
+            .getResource("/data/discrete_20var_1kcase/simulation/graph/graph.1.txt").getFile();
 
-    public static final String SIM_DISC_20VAR_1KCASE_2_PAG_FROM_DAG_GRAPH = DataFiles.class
-            .getResource("/data/discrete_20var_1kcase_2/graph/true_pag_from_dag.txt").getFile();
+    public static final String SIM_DISC_20VAR_1KCASE_2_TRUE_GRAPH = DataFiles.class
+            .getResource("/data/discrete_20var_1kcase_2/simulation/graph/graph.1.txt").getFile();
 
     private GraphFiles() {
     }

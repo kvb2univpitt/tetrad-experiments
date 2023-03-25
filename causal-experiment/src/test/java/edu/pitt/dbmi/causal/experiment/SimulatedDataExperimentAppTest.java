@@ -30,7 +30,7 @@ import org.junit.jupiter.api.io.TempDir;
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class SimulatedDataExperimentsTest {
+public class SimulatedDataExperimentAppTest {
 
     @TempDir
     public static Path tempDir;
@@ -45,7 +45,7 @@ public class SimulatedDataExperimentsTest {
         String[] args = {
             dirOut
         };
-        SimulatedDataExperiments.main(args);
+        SimulatedDataExperimentApp.main(args);
     }
 
 }

@@ -45,7 +45,7 @@ public class GraphsTest {
     @Disabled
     @Test
     public void testExportAsPngImage() throws Exception {
-        Graph graph = ResourceLoader.loadGraph(Paths.get(GraphFiles.SIM_DISC_20VAR_1KCASE_2_PAG_FROM_DAG_GRAPH));
+        Graph graph = ResourceLoader.loadGraph(Paths.get(GraphFiles.SIM_DISC_20VAR_1KCASE_TRUE_GRAPH));
         String dirOut = FileIO.createSubdirectory(tempDir, "pag_sampling_rfci").toString();
         int width = 1000;
         int height = 1000;

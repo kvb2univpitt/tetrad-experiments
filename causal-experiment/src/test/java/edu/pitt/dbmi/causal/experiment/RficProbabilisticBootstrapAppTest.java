@@ -44,11 +44,11 @@ public class RficProbabilisticBootstrapAppTest {
     @Test
     public void testMain() throws Exception {
         String dataset = DataFiles.SIM_DISC_20VAR_1KCASE_2;
-        String truePagFromDagGraph = GraphFiles.SIM_DISC_20VAR_1KCASE_2_PAG_FROM_DAG_GRAPH;
+        String trueGraph = GraphFiles.SIM_DISC_20VAR_1KCASE_2_TRUE_GRAPH;
         String dirOut = FileIO.createSubdirectory(tempDir, "rfci_probabilistic_bootstrap").toString();
         String[] args = {
             dataset,
-            truePagFromDagGraph,
+            trueGraph,
             dirOut
         };
         RficProbabilisticBootstrapApp.main(args);

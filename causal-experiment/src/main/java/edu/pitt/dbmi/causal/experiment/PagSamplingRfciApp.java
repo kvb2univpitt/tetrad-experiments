@@ -57,6 +57,7 @@ public class PagSamplingRfciApp {
 
     private static void run(Path dataFile, Path trueGraphFile, Path dirOut) throws IOException {
         Graph trueGraph = ResourceLoader.loadGraph(trueGraphFile);
+        Graph pagFromDagGraph = SearchGraphUtils.dagToPag(trueGraph);
         DataSet dataSet = (DataSet) ResourceLoader.loadDataModel(dataFile, Delimiter.TAB);
 
         Parameters parameters = getParameters();
@@ -82,7 +83,7 @@ public class PagSamplingRfciApp {
         Graph searchGraph = GraphSampling.createGraphWithHighProbabilityEdges(graphs);
 
         String outputDir = dirOut.toString();
-        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, trueGraph);
+        GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
         graphCalibration.saveGraphData(Paths.get(outputDir, "edge_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
@@ -90,7 +91,7 @@ public class PagSamplingRfciApp {
                 1000, 1000,
                 Paths.get(outputDir, "calibration.png"));
 
-        GraphDetails.saveDetails(trueGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
+        GraphDetails.saveDetails(pagFromDagGraph, searchGraph, Paths.get(outputDir, "graph_details.txt"));
 
         Graphs.saveGraph(searchGraph, Paths.get(outputDir, "graph.txt"));
         Graphs.exportAsPngImage(searchGraph, 1000, 1000, Paths.get(outputDir, "graph.png"));

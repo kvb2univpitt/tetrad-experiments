@@ -20,7 +20,7 @@ package edu.pitt.dbmi.causal.experiment.calibration;
 
 import edu.cmu.tetrad.graph.Graph;
 import edu.pitt.dbmi.lib.math.classification.calibration.HosmerLemeshow;
-import edu.pitt.dbmi.lib.math.classification.calibration.HosmerLemeshowRiskGroup;
+import edu.pitt.dbmi.lib.math.classification.calibration.HosmerLemeshowDecileGroup;
 import edu.pitt.dbmi.lib.math.classification.calibration.plot.HosmerLemeshowPlot;
 import edu.pitt.dbmi.lib.math.classification.data.ObservedPredictedValue;
 import edu.pitt.dbmi.lib.math.classification.plot.PlotColors;
@@ -54,7 +54,7 @@ public class GraphStatistics {
         this.graphData = GraphData.examineDirectEdge(searchGraph, trueGraph);
 
         ObservedPredictedValue[] observedPredictedValues = toObservedPredictedValues(graphData);
-        this.hosmerLemeshow = new HosmerLemeshowRiskGroup(observedPredictedValues);
+        this.hosmerLemeshow = new HosmerLemeshowDecileGroup(observedPredictedValues);
     }
 
     public void saveStatistics(Path file) throws IOException {
