@@ -32,6 +32,12 @@ public final class GraphFiles {
     public static final String SIM_DISC_20VAR_1KCASE_2_TRUE_GRAPH = DataFiles.class
             .getResource("/data/discrete_20var_1kcase_2/simulation/graph/graph.1.txt").getFile();
 
+    public static final String SEARCH_GRAPH = DataFiles.class
+            .getResource("/graph/search_graph.txt").getFile();
+
+    public static final String PAG_FROM_DAG_GRAPH = DataFiles.class
+            .getResource("/graph/pag_from_dag_graph.txt").getFile();
+
     private GraphFiles() {
     }
 

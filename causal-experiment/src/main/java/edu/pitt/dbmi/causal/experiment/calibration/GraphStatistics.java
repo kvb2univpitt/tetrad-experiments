@@ -44,13 +44,7 @@ public class GraphStatistics {
 
     private final HosmerLemeshow hosmerLemeshow;
 
-    private final Graph searchGraph;
-    private final Graph trueGraph;
-
     public GraphStatistics(Graph searchGraph, Graph trueGraph) {
-        this.searchGraph = searchGraph;
-        this.trueGraph = trueGraph;
-
         this.graphData = GraphData.examineDirectEdge(searchGraph, trueGraph);
 
         ObservedPredictedValue[] observedPredictedValues = toObservedPredictedValues(graphData);
