@@ -95,6 +95,27 @@ public final class GraphData {
         }
     }
 
+    public static Set<EdgeValue> examineEdges(Graph searchGraph, Graph trueGraph) {
+        Set<EdgeValue> edgeValues = createEdgeValues(trueGraph);
+
+        edgeValues.forEach(edgeValue -> {
+            String node1 = edgeValue.getNode1();
+            String node2 = edgeValue.getNode2();
+
+            Edge trueEdge = trueGraph.getEdge(trueGraph.getNode(node1), trueGraph.getNode(node2));
+            if (trueEdge != null) {
+                edgeValue.setObservedValue(1);
+            }
+
+            Edge predictedEdge = searchGraph.getEdge(searchGraph.getNode(node1), searchGraph.getNode(node2));
+            if (predictedEdge != null) {
+                edgeValue.setPredictedValue(predictedEdge.getProbability());
+            }
+        });
+
+        return edgeValues;
+    }
+
     public static Set<EdgeValue> examineDirectEdge(Graph searchGraph, Graph trueGraph) {
         Set<EdgeValue> edgeValues = createEdgeValues(trueGraph, EdgeType.ta);
         setObservedValues(trueGraph, edgeValues);
@@ -138,6 +159,21 @@ public final class GraphData {
                 }
             }
         }
+    }
+
+    private static Set<EdgeValue> createEdgeValues(Graph graph) {
+        Set<EdgeValue> edgeValues = new LinkedHashSet<>();
+
+        String[] nodeNames = graph.getNodeNames().stream().toArray(String[]::new);
+        for (int i = 0; i < nodeNames.length - 1; i++) {
+            for (int j = i + 1; j < nodeNames.length; j++) {
+                String node1 = nodeNames[i];
+                String node2 = nodeNames[j];
+                edgeValues.add(new EdgeValue(node1, node2, EdgeType.tt));
+            }
+        }
+
+        return edgeValues;
     }
 
     private static Set<EdgeValue> createEdgeValues(Graph graph, EdgeType edgeType) {

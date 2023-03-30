@@ -20,7 +20,7 @@ package edu.pitt.dbmi.causal.experiment.calibration;
 
 import edu.cmu.tetrad.graph.Graph;
 import edu.pitt.dbmi.lib.math.classification.calibration.HosmerLemeshow;
-import edu.pitt.dbmi.lib.math.classification.calibration.HosmerLemeshowDecileGroup;
+import edu.pitt.dbmi.lib.math.classification.calibration.HosmerLemeshowRiskGroup;
 import edu.pitt.dbmi.lib.math.classification.calibration.plot.HosmerLemeshowPlot;
 import edu.pitt.dbmi.lib.math.classification.data.ObservedPredictedValue;
 import edu.pitt.dbmi.lib.math.classification.plot.PlotColors;
@@ -41,14 +41,16 @@ import java.util.Set;
 public class GraphStatistics {
 
     private final Set<EdgeValue> graphData;
+    private final Set<EdgeValue> edgeData;
 
     private final HosmerLemeshow hosmerLemeshow;
 
     public GraphStatistics(Graph searchGraph, Graph trueGraph) {
         this.graphData = GraphData.examineDirectEdge(searchGraph, trueGraph);
+        this.edgeData = GraphData.examineEdges(searchGraph, trueGraph);
 
         ObservedPredictedValue[] observedPredictedValues = toObservedPredictedValues(graphData);
-        this.hosmerLemeshow = new HosmerLemeshowDecileGroup(observedPredictedValues);
+        this.hosmerLemeshow = new HosmerLemeshowRiskGroup(observedPredictedValues);
     }
 
     public void saveStatistics(Path file) throws IOException {
@@ -77,6 +79,12 @@ public class GraphStatistics {
     public void saveGraphData(Path file) throws IOException {
         try (PrintStream writer = new PrintStream(file.toFile())) {
             GraphData.write(graphData, writer);
+        }
+    }
+
+    public void saveEdgeData(Path file) throws IOException {
+        try (PrintStream writer = new PrintStream(file.toFile())) {
+            GraphData.write(edgeData, writer);
         }
     }
 

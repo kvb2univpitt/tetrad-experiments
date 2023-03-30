@@ -100,7 +100,7 @@ public class RficGSquareBootstrapRunner extends AbstractRunner {
 
         String outputDir = dirOut.toString();
         GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
-        graphCalibration.saveGraphData(Paths.get(outputDir, "edge_data.csv"));
+        graphCalibration.saveGraphData(Paths.get(outputDir, "edgetype_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
                 "RFCI-G2 Bootstrapping", "rfci-g2-bs",
