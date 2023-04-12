@@ -81,7 +81,7 @@ public class PagSamplingRfciRunner extends AbstractRunner {
 
         String outputDir = dirOut.toString();
         GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
-        graphCalibration.saveGraphData(Paths.get(outputDir, "edgetype_data.csv"));
+        graphCalibration.saveGraphData(Paths.get(outputDir, "directed_edge_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
                 "PAG Sampling RFCI", "pag-sampling-rfci",

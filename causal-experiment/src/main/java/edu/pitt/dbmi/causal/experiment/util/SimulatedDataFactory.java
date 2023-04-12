@@ -42,9 +42,9 @@ public final class SimulatedDataFactory {
     private SimulatedDataFactory() {
     }
 
-    public static SimulatedData createBayesNetSimulationData(long seed, Path dirOut) throws Exception {
+    public static SimulatedData createBayesNetSimulationData(int numOfVariables, long seed, Path dirOut) throws Exception {
         Simulation simulation = new BayesNetSimulation(new RandomForward());
-        Parameters parameters = createParameters(simulation, 20, seed);
+        Parameters parameters = createParameters(simulation, numOfVariables, seed);
         simulation.createData(parameters, true);
 
         // save data and true graph
@@ -66,6 +66,7 @@ public final class SimulatedDataFactory {
         }
 
         // override parameter values
+        parameters.set(Params.RANDOMIZE_COLUMNS, Boolean.FALSE);
         parameters.set(Params.NUM_MEASURES, numOfVariables);
         parameters.set(Params.SEED, seed);
 

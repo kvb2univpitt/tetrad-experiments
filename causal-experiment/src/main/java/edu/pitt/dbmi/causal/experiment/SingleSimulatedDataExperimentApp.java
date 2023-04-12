@@ -1,21 +1,3 @@
-/*
- * Copyright (C) 2023 University of Pittsburgh.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- */
 package edu.pitt.dbmi.causal.experiment;
 
 import edu.cmu.tetrad.util.Parameters;
@@ -32,23 +14,14 @@ import java.nio.file.Paths;
 
 /**
  *
- * Mar 21, 2023 11:01:56 AM
+ * Mar 31, 2023 12:08:23 AM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class SimulatedDataExperimentApp {
+public class SingleSimulatedDataExperimentApp {
 
     public static long[] SEEDS = {
-        11584893960885L,
-        5584533057817L,
-        3909440345377L,
-        11946365959146L,
-        7148459185827L,
-        6172257769725L,
-        12399190681453L,
-        4889282875623L,
-        12434943985933L,
-        3870659553831L
+        1680273000029L
     };
 
     private static void run(Path dirout) throws Exception {
@@ -58,7 +31,7 @@ public class SimulatedDataExperimentApp {
         for (int i = 0; i < SEEDS.length; i++) {
             Path iExperimentFolder = FileIO.createSubdirectory(experimentFolder, String.format("experiment_%d", i + 1));
 
-            int numOfVariables = 20;
+            int numOfVariables = 100;
             Path dataFolder = FileIO.createSubdirectory(iExperimentFolder, "data");
             SimulatedData simData = SimulatedDataFactory.createBayesNetSimulationData(numOfVariables, SEEDS[i], dataFolder);
 
@@ -172,7 +145,7 @@ public class SimulatedDataExperimentApp {
      */
     public static void main(String[] args) {
         System.out.println("================================================================================");
-        System.out.println("Simulated Data Experiments");
+        System.out.println("Single Simulated Data Experiments");
         System.out.println("================================================================================");
         try {
             run(Paths.get(args[0]));
