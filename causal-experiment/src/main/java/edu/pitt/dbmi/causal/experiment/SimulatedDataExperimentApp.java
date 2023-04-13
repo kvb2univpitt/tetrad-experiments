@@ -59,8 +59,10 @@ public class SimulatedDataExperimentApp {
             Path iExperimentFolder = FileIO.createSubdirectory(experimentFolder, String.format("experiment_%d", i + 1));
 
             int numOfVariables = 20;
+            int numOfCases = 1000;
+            int avgDegree = 3;
             Path dataFolder = FileIO.createSubdirectory(iExperimentFolder, "data");
-            SimulatedData simData = SimulatedDataFactory.createBayesNetSimulationData(numOfVariables, SEEDS[i], dataFolder);
+            SimulatedData simData = SimulatedDataFactory.createBayesNetSimulationData(numOfVariables, numOfCases, avgDegree, SEEDS[i], dataFolder);
 
             Path graphFolder = FileIO.createSubdirectory(iExperimentFolder, "graphs");
             Graphs.saveSourceGraphs(graphFolder, simData);

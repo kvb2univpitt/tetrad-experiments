@@ -1,24 +1,6 @@
-/*
- * Copyright (C) 2023 University of Pittsburgh.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
- */
-package edu.pitt.dbmi.causal.experiment;
+package edu.pitt.dbmi.causal.experiment.run;
 
-import edu.cmu.tetrad.algcomparison.independence.Gsquare;
+import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Rfci;
@@ -28,16 +10,15 @@ import edu.cmu.tetrad.util.ParamDescriptions;
 import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.causal.experiment.calibration.GraphStatistics;
+import edu.pitt.dbmi.causal.experiment.data.SimulatedData;
 import edu.pitt.dbmi.causal.experiment.tetrad.Graphs;
 import edu.pitt.dbmi.causal.experiment.util.DataSampling;
+import edu.pitt.dbmi.causal.experiment.util.FileIO;
 import edu.pitt.dbmi.causal.experiment.util.GraphDetails;
-import edu.pitt.dbmi.causal.experiment.util.ResourceLoader;
-import edu.pitt.dbmi.data.reader.Delimiter;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -45,23 +26,21 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  *
- * Mar 11, 2023 6:34:20 PM
+ * Apr 12, 2023 10:24:50 AM
  *
  * @author Kevin V. Bui (kvb2univpitt@gmail.com)
  */
-public class RficGSquareBootstrapApp {
+public class RficChiSquareBootstrapRunner extends AbstractRunner {
 
-    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm:ss");
+    public RficChiSquareBootstrapRunner(SimulatedData simulatedData, Parameters parameters) {
+        super(simulatedData, parameters);
+    }
 
-    private static final String TITLE = "Rfci with Bootstrapping Using G Square Test";
-
-    private static void run(Path dataFile, Path trueGraphFile, Path dirOut) throws Exception {
-        Graph trueGraph = ResourceLoader.loadGraph(trueGraphFile);
-        Graph pagFromDagGraph = SearchGraphUtils.dagToPag(trueGraph);
-        DataSet dataSet = (DataSet) ResourceLoader.loadDataModel(dataFile, Delimiter.TAB);
-
-        // get algorithm parameters
-        Parameters parameters = getParameters();
+    @Override
+    public void run(Path parentOutDir) throws Exception {
+        Graph pagFromDagGraph = simulatedData.getPagFromDagGraph();
+        DataSet dataSet = simulatedData.getDataSet();
+        Path dirOut = FileIO.createSubdirectory(parentOutDir, "rfic_chi2_bootstrap");
 
         RandomGenerator randGen = DataSampling.createRandomGenerator(parameters);
         List<DataSet> dataSets = DataSampling.sample(dataSet, parameters, randGen);
@@ -74,9 +53,13 @@ public class RficGSquareBootstrapApp {
         int numOfSearchRuns = 0;
         List<Graph> graphs = new LinkedList<>();
         for (DataSet data : dataSets) {
+            System.out.printf("Starting search: %d%n", numOfSearchRuns + 1);
             Graph graph = runSearch(data, parameters);
             if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                System.out.println("Search returns legal PAG.");
                 graphs.add(graph);
+            } else {
+                System.out.println("Search does not return legal PAG.");
             }
             numOfSearchRuns++;
         }
@@ -84,14 +67,18 @@ public class RficGSquareBootstrapApp {
         // continue to run searches until the number of desire graphs has reached
         int numOfAdditionalDataSampling = 0;
         while (graphs.size() < dataSets.size()) {
-            numOfAdditionalDataSampling++;
-            numOfSearchRuns++;
-
             DataSet sampleData = DataSampling.sampleWithReplacement(dataSet, randGen);
+            System.out.printf("Starting search: %d%n", numOfSearchRuns + 1);
             Graph graph = runSearch(sampleData, parameters);
             if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                System.out.println("Search returns legal PAG.");
                 graphs.add(graph);
+            } else {
+                System.out.println("Search does not return legal PAG.");
             }
+
+            numOfAdditionalDataSampling++;
+            numOfSearchRuns++;
         }
 
         // stop the timer
@@ -103,10 +90,10 @@ public class RficGSquareBootstrapApp {
 
         String outputDir = dirOut.toString();
         GraphStatistics graphCalibration = new GraphStatistics(searchGraph, pagFromDagGraph);
-        graphCalibration.saveGraphData(Paths.get(outputDir, "edge_data.csv"));
+        graphCalibration.saveGraphData(Paths.get(outputDir, "directed_edge_data.csv"));
         graphCalibration.saveStatistics(Paths.get(outputDir, "statistics.txt"));
         graphCalibration.saveCalibrationPlot(
-                "RFCI-G2 Bootstrapping", "rfci-g2-bs",
+                "RFCI-Chi Square Bootstrapping", "rfci-chi2-bs",
                 1000, 1000,
                 Paths.get(outputDir, "calibration.png"));
 
@@ -116,10 +103,10 @@ public class RficGSquareBootstrapApp {
 
         // write out details
         try (PrintStream writer = new PrintStream(Paths.get(outputDir, "run_details.txt").toFile())) {
-            writer.println(TITLE);
+            writer.println("Rfci with Bootstrapping Using Chi Square Test");
             writer.println("================================================================================");
             writer.println("Algorithm: RFCI");
-            writer.println("Test of Independence: G Square Test");
+            writer.println("Test of Independence: Chi Square Test");
             writer.println();
 
             writer.println("Parameters");
@@ -163,16 +150,7 @@ public class RficGSquareBootstrapApp {
         }
     }
 
-    private static Graph runSearch(DataSet dataSet, Parameters parameters) {
-        Rfci rfci = new Rfci((new Gsquare()).getTest(dataSet, parameters));
-        rfci.setDepth(parameters.getInt(Params.DEPTH));
-        rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
-        rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
-
-        return rfci.search();
-    }
-
-    private static void printParameters(Parameters parameters, PrintStream writer) {
+    private void printParameters(Parameters parameters, PrintStream writer) {
         ParamDescriptions paramDescs = ParamDescriptions.getInstance();
 
         writer.println("RFCI");
@@ -188,7 +166,7 @@ public class RficGSquareBootstrapApp {
                 getParameterValue(parameters, Params.VERBOSE));
         writer.println();
 
-        writer.println("G Square Test");
+        writer.println("Chi Square Test");
         writer.println("--------------------");
         writer.printf("%s: %s%n",
                 paramDescs.get(Params.ALPHA).getShortDescription(),
@@ -211,61 +189,13 @@ public class RficGSquareBootstrapApp {
                 getParameterValue(parameters, Params.RESAMPLING_WITH_REPLACEMENT));
     }
 
-    private static String getParameterValue(Parameters parameters, String name) {
-        String paramValue = String.valueOf(parameters.get(name));
-        if (paramValue.equals("true")) {
-            paramValue = "Yes";
-        } else if (paramValue.equals("false")) {
-            paramValue = "No";
-        }
+    private Graph runSearch(DataSet dataSet, Parameters parameters) {
+        Rfci rfci = new Rfci((new ChiSquare()).getTest(dataSet, parameters));
+        rfci.setDepth(parameters.getInt(Params.DEPTH));
+        rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
+        rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
 
-        return paramValue;
-    }
-
-    private static Parameters getParameters() {
-        Parameters parameters = new Parameters();
-
-        // rfci
-        int maxPathLength = -1;
-        int depth = -1;
-        boolean verbose = false;
-        parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
-        parameters.set(Params.DEPTH, depth);
-        parameters.set(Params.VERBOSE, verbose);
-
-        // g square test of independence
-        double alpha = 0.05;
-        parameters.set(Params.ALPHA, alpha);
-
-        // bootstrapping
-        long seed = 1673588774198L;
-        int numberOfResampling = 99;
-        boolean addOriginalDataset = true;
-        boolean resamplingWithReplacement = true;
-        parameters.set(Params.SEED, seed);
-        parameters.set(Params.NUMBER_RESAMPLING, numberOfResampling);
-        parameters.set(Params.ADD_ORIGINAL_DATASET, addOriginalDataset);
-        parameters.set(Params.RESAMPLING_WITH_REPLACEMENT, resamplingWithReplacement);
-
-        return parameters;
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        System.out.println("================================================================================");
-        System.out.println(TITLE);
-        System.out.println("================================================================================");
-        Path datasetFile = Paths.get(args[0]);
-        Path trueGraph = Paths.get(args[1]);
-        Path dirOut = Paths.get(args[2]);
-        try {
-            run(datasetFile, trueGraph, dirOut);
-        } catch (Exception exception) {
-            exception.printStackTrace(System.err);
-        }
-        System.out.println("================================================================================");
+        return rfci.search();
     }
 
 }

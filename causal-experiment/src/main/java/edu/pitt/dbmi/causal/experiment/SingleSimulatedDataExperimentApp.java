@@ -4,7 +4,7 @@ import edu.cmu.tetrad.util.Parameters;
 import edu.cmu.tetrad.util.Params;
 import edu.pitt.dbmi.causal.experiment.data.SimulatedData;
 import edu.pitt.dbmi.causal.experiment.run.PagSamplingRfciRunner;
-import edu.pitt.dbmi.causal.experiment.run.RficGSquareBootstrapRunner;
+import edu.pitt.dbmi.causal.experiment.run.RficChiSquareBootstrapRunner;
 import edu.pitt.dbmi.causal.experiment.run.RficProbabilisticBootstrapRunner;
 import edu.pitt.dbmi.causal.experiment.tetrad.Graphs;
 import edu.pitt.dbmi.causal.experiment.util.FileIO;
@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 public class SingleSimulatedDataExperimentApp {
 
     public static long[] SEEDS = {
-        1680273000029L
+        1681411802094L
     };
 
     private static void run(Path dirout) throws Exception {
@@ -31,9 +31,11 @@ public class SingleSimulatedDataExperimentApp {
         for (int i = 0; i < SEEDS.length; i++) {
             Path iExperimentFolder = FileIO.createSubdirectory(experimentFolder, String.format("experiment_%d", i + 1));
 
-            int numOfVariables = 100;
+            int numOfVariables = 20;
+            int numOfCases = 1000;
+            int avgDegree = 3;
             Path dataFolder = FileIO.createSubdirectory(iExperimentFolder, "data");
-            SimulatedData simData = SimulatedDataFactory.createBayesNetSimulationData(numOfVariables, SEEDS[i], dataFolder);
+            SimulatedData simData = SimulatedDataFactory.createBayesNetSimulationData(numOfVariables, numOfCases, avgDegree, SEEDS[i], dataFolder);
 
             Path graphFolder = FileIO.createSubdirectory(iExperimentFolder, "graphs");
             Graphs.saveSourceGraphs(graphFolder, simData);
@@ -48,18 +50,18 @@ public class SingleSimulatedDataExperimentApp {
             RficProbabilisticBootstrapRunner rficProbabilisticBootstrapRunner = new RficProbabilisticBootstrapRunner(simData, getRficProbabilisticBootstrapParameters());
             rficProbabilisticBootstrapRunner.run(runFolder);
 
-            // run rfci with g2 test via bootstrapping
-            RficGSquareBootstrapRunner rficGSquareBootstrapRunner = new RficGSquareBootstrapRunner(simData, getRficGSquareBootstrapParameters());
+            // run rfci with chi2 test via bootstrapping
+            RficChiSquareBootstrapRunner rficGSquareBootstrapRunner = new RficChiSquareBootstrapRunner(simData, getRficChiSquareBootstrapParameters());
             rficGSquareBootstrapRunner.run(runFolder);
         }
     }
 
-    private static Parameters getRficGSquareBootstrapParameters() {
+    private static Parameters getRficChiSquareBootstrapParameters() {
         Parameters parameters = new Parameters();
 
         // rfci
         int maxPathLength = -1;
-        int depth = -1;
+        int depth = 3;
         boolean verbose = false;
         parameters.set(Params.MAX_PATH_LENGTH, maxPathLength);
         parameters.set(Params.DEPTH, depth);

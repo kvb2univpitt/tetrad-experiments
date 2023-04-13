@@ -31,6 +31,8 @@ import java.time.format.DateTimeFormatter;
  */
 public abstract class AbstractRunner {
 
+    protected static final int NUM_THREADS = 10;
+
     protected static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("MMM dd, yyyy hh:mm:ss");
 
     protected final SimulatedData simulatedData;
@@ -43,7 +45,7 @@ public abstract class AbstractRunner {
 
     public abstract void run(Path parentOutDir) throws Exception;
 
-    protected static String getParameterValue(Parameters parameters, String name) {
+    protected String getParameterValue(Parameters parameters, String name) {
         String paramValue = String.valueOf(parameters.get(name));
         if (paramValue.equals("true")) {
             paramValue = "Yes";

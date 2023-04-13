@@ -42,9 +42,9 @@ public final class SimulatedDataFactory {
     private SimulatedDataFactory() {
     }
 
-    public static SimulatedData createBayesNetSimulationData(int numOfVariables, long seed, Path dirOut) throws Exception {
+    public static SimulatedData createBayesNetSimulationData(int numOfVariables, int numOfCases, int avgDegree, long seed, Path dirOut) throws Exception {
         Simulation simulation = new BayesNetSimulation(new RandomForward());
-        Parameters parameters = createParameters(simulation, numOfVariables, seed);
+        Parameters parameters = createParameters(simulation, numOfVariables, numOfCases, avgDegree, seed);
         simulation.createData(parameters, true);
 
         // save data and true graph
@@ -57,7 +57,7 @@ public final class SimulatedDataFactory {
         return new SimulatedData(dataSet, trueGraph, pagFromDagGraph);
     }
 
-    private static Parameters createParameters(Simulation simulation, int numOfVariables, long seed) {
+    private static Parameters createParameters(Simulation simulation, int numOfVariables, int numOfCases, int avgDegree, long seed) {
         Parameters parameters = new Parameters();
 
         ParamDescriptions paramDescs = ParamDescriptions.getInstance();
@@ -68,6 +68,8 @@ public final class SimulatedDataFactory {
         // override parameter values
         parameters.set(Params.RANDOMIZE_COLUMNS, Boolean.FALSE);
         parameters.set(Params.NUM_MEASURES, numOfVariables);
+        parameters.set(Params.SAMPLE_SIZE, numOfCases);
+        parameters.set(Params.AVG_DEGREE, avgDegree);
         parameters.set(Params.SEED, seed);
 
         return parameters;

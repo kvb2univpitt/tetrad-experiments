@@ -66,9 +66,13 @@ public class PagSamplingRfciRunner extends AbstractRunner {
         List<Graph> graphs = new LinkedList<>();
         int numRandomizedSearchModels = parameters.getInt(Params.NUM_RANDOMIZED_SEARCH_MODELS);
         while (graphs.size() < numRandomizedSearchModels) {
+            System.out.printf("Starting search: %d%n", numOfSearchRuns + 1);
             Graph graph = runSearch(dataSet, parameters);
             if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                System.out.println("Search returns legal PAG.");
                 graphs.add(graph);
+            } else {
+                System.out.println("Search does not return legal PAG.");
             }
             numOfSearchRuns++;
         }

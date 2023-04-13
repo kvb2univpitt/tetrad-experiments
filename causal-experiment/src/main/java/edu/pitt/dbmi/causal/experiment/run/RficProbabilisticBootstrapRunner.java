@@ -71,9 +71,13 @@ public class RficProbabilisticBootstrapRunner extends AbstractRunner {
         int numOfSearchRuns = 0;
         List<Graph> graphs = new LinkedList<>();
         for (DataSet data : dataSets) {
+            System.out.printf("Starting search: %d%n", numOfSearchRuns + 1);
             Graph graph = runSearch(data, parameters);
             if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                System.out.println("Search returns legal PAG.");
                 graphs.add(graph);
+            } else {
+                System.out.println("Search does not return legal PAG.");
             }
             numOfSearchRuns++;
         }
@@ -81,14 +85,18 @@ public class RficProbabilisticBootstrapRunner extends AbstractRunner {
         // continue to run searches until the number of desire graphs has reached
         int numOfAdditionalDataSampling = 0;
         while (graphs.size() < dataSets.size()) {
-            numOfAdditionalDataSampling++;
-            numOfSearchRuns++;
-
             DataSet sampleData = DataSampling.sampleWithReplacement(dataSet, randGen);
+            System.out.printf("Starting search: %d%n", numOfSearchRuns + 1);
             Graph graph = runSearch(sampleData, parameters);
             if (SearchGraphUtils.isLegalPag(graph).isLegalPag()) {
+                System.out.println("Search returns legal PAG.");
                 graphs.add(graph);
+            } else {
+                System.out.println("Search does not return legal PAG.");
             }
+
+            numOfAdditionalDataSampling++;
+            numOfSearchRuns++;
         }
 
         // stop the timer

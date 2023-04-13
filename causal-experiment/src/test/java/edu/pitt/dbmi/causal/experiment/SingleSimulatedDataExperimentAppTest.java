@@ -24,7 +24,6 @@ public class SingleSimulatedDataExperimentAppTest {
     @Test
     public void testMain() throws Exception {
         String dirOut = FileIO.createSubdirectory(tempDir, "single_sim_data_exp").toString();
-        dirOut = "/home/kvb2/shared/tmp/causal_experiments";
         String[] args = {
             dirOut
         };

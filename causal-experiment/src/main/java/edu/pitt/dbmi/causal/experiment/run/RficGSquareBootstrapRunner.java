@@ -18,7 +18,7 @@
  */
 package edu.pitt.dbmi.causal.experiment.run;
 
-import edu.cmu.tetrad.algcomparison.independence.GSquare;
+import edu.cmu.tetrad.algcomparison.independence.Gsquare;
 import edu.cmu.tetrad.data.DataSet;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.search.Rfci;
@@ -160,7 +160,7 @@ public class RficGSquareBootstrapRunner extends AbstractRunner {
         }
     }
 
-    private static void printParameters(Parameters parameters, PrintStream writer) {
+    private void printParameters(Parameters parameters, PrintStream writer) {
         ParamDescriptions paramDescs = ParamDescriptions.getInstance();
 
         writer.println("RFCI");
@@ -200,7 +200,7 @@ public class RficGSquareBootstrapRunner extends AbstractRunner {
     }
 
     private Graph runSearch(DataSet dataSet, Parameters parameters) {
-        Rfci rfci = new Rfci((new GSquare()).getTest(dataSet, parameters));
+        Rfci rfci = new Rfci((new Gsquare()).getTest(dataSet, parameters));
         rfci.setDepth(parameters.getInt(Params.DEPTH));
         rfci.setMaxPathLength(parameters.getInt(Params.MAX_PATH_LENGTH));
         rfci.setVerbose(parameters.getBoolean(Params.VERBOSE));
